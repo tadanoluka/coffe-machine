@@ -1,39 +1,103 @@
 package machine
 
-enum class CoffeeType(val requestedWater: Int, val requestedMilk: Int, val requestedBeans: Int, val price: Int) {
-    ESPRESSO(250, 0, 16, 4),
-    LATTE(350, 75, 20, 7),
-    CAPPUCCINO(200, 100, 12, 6),
-    NULL(0,0,0,0)
-}
+class CoffeeMachine(water: Int, milk: Int, coffeeBeans: Int, disposableCups: Int, money: Int) {
+    private var totalAmountOfWater = water
+    private var totalAmountOfMilk = milk
+    private var totalAmountOfBeans = coffeeBeans
+    private var totalAmountOfCups = disposableCups
+    private var totalAmountOfMoney = money
 
-class CoffeeMachine(
-    private var totalAmountOfWater: Int,
-    private var totalAmountOfMilk: Int,
-    private var totalAmountOfBeans: Int,
-    private var totalAmountOfCups: Int,
-    private var totalAmountOfMoney: Int) {
+    private var currentState = CoffeeMachineState.CHOOSING_ACTION
 
-    fun coffeeMachineInterface() {
-        while (true) {
-            println("Write action (buy, fill, take, remaining, exit): ")
-            val stringForAction = readln()
-            println()
-            when (stringForAction.lowercase()) {
-                "buy" -> buyOperation()
-                "fill" -> fillOperation()
-                "take" -> takeOperation()
-                "remaining" -> displayCurrentState()
-                "exit" -> break
-                else -> println("Invalid action")
+    enum class CoffeeType(val requestedWater: Int, val requestedMilk: Int, val requestedBeans: Int, val price: Int) {
+        ESPRESSO(250, 0, 16, 4),
+        LATTE(350, 75, 20, 7),
+        CAPPUCCINO(200, 100, 12, 6),
+        NULL(0,0,0,0)
+    }
+
+    enum class CoffeeMachineState {
+        CHOOSING_ACTION,
+        CHOOSING_TYPE_OF_COFFEE,
+        FILLING_WATER,
+        FILLING_MILK,
+        FILLING_COFFEE_BEAMS,
+        FILLING_DISPOSABLE_CUPS
+    }
+
+    init {
+        printActionMenu()
+    }
+
+    private fun printActionMenu() {
+        println("\nWrite action (buy, fill, take, remaining, exit):")
+    }
+
+    private fun printChoseCoffeeMenu() {
+        println("\nWhat do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu: ")
+    }
+
+    fun inputInterface(inputString: String) {
+        when (currentState) {
+            CoffeeMachineState.CHOOSING_ACTION -> {
+                when (inputString.lowercase()) {
+                    "buy" -> {
+                        printChoseCoffeeMenu()
+                        currentState = CoffeeMachineState.CHOOSING_TYPE_OF_COFFEE
+                    }
+                    "fill" -> {
+                        println("Write how many ml of water you want to add:")
+                        currentState = CoffeeMachineState.FILLING_WATER
+                    }
+                    "take" -> {
+                        takeOperation()
+                        printActionMenu()
+                    }
+                    "remaining" -> {
+                        displayStocks()
+                        printActionMenu()
+                    }
+                    else -> {
+                        println("Invalid input for action.")
+                        printActionMenu()
+                    }
+                }
             }
-            println()
+            CoffeeMachineState.CHOOSING_TYPE_OF_COFFEE -> {
+                buyOperation(inputString.lowercase())
+
+                printActionMenu()
+                currentState = CoffeeMachineState.CHOOSING_ACTION
+            }
+            CoffeeMachineState.FILLING_WATER -> {
+                fillWater(inputString.lowercase())
+
+                println("Write how many ml of milk you want to add:")
+                currentState = CoffeeMachineState.FILLING_MILK
+            }
+            CoffeeMachineState.FILLING_MILK -> {
+                fillMilk(inputString.lowercase())
+
+                println("Write how many grams of coffee beans you want to add:")
+                currentState = CoffeeMachineState.FILLING_COFFEE_BEAMS
+            }
+            CoffeeMachineState.FILLING_COFFEE_BEAMS -> {
+                fillBeans(inputString.lowercase())
+
+                println("Write how many disposable cups you want to add:")
+                currentState = CoffeeMachineState.FILLING_DISPOSABLE_CUPS
+            }
+            CoffeeMachineState.FILLING_DISPOSABLE_CUPS -> {
+                fillCups(inputString.lowercase())
+
+                printActionMenu()
+                currentState = CoffeeMachineState.CHOOSING_ACTION
+            }
         }
     }
 
-    private fun buyOperation() {
-        println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu: ")
-        val chosenCoffee = when (readln()) {
+    private fun buyOperation(inputString: String) {
+        val chosenCoffee = when (inputString) {
             "1" -> CoffeeType.ESPRESSO
             "2" -> CoffeeType.LATTE
             "3" -> CoffeeType.CAPPUCCINO
@@ -56,23 +120,23 @@ class CoffeeMachine(
                     } else println("Sorry, not enough coffee beans!")
                 } else println("Sorry, not enough milk!")
             } else println("Sorry, not enough water!")
-        }
+        } else println("Sorry, not valid input for choosing coffee.")
     }
 
-    private fun fillOperation() {
-        println("Write how many ml of water you want to add:")
-        val amountOfWaterToAdd = readln().toInt()
-        println("Write how many ml of milk you want to add:")
-        val amountOfMilkToAdd = readln().toInt()
-        println("Write how many grams of coffee beans you want to add:")
-        val amountOfBeansToAdd = readln().toInt()
-        println("Write how many disposable cups you want to add:")
-        val amountOfCupsToAdd = readln().toInt()
+    private fun fillWater(inputString: String) {
+        totalAmountOfWater += inputString.toInt()
+    }
 
-        totalAmountOfWater += amountOfWaterToAdd
-        totalAmountOfMilk += amountOfMilkToAdd
-        totalAmountOfBeans += amountOfBeansToAdd
-        totalAmountOfCups += amountOfCupsToAdd
+    private fun fillMilk(inputString: String) {
+        totalAmountOfMilk += inputString.toInt()
+    }
+
+    private fun fillBeans(inputString: String) {
+        totalAmountOfBeans += inputString.toInt()
+    }
+
+    private fun fillCups(inputString: String) {
+        totalAmountOfCups += inputString.toInt()
     }
 
     private fun takeOperation() {
@@ -80,7 +144,8 @@ class CoffeeMachine(
         totalAmountOfMoney = 0
     }
 
-    private fun displayCurrentState() {
+    private fun displayStocks() {
+        println()
         println("""
             The coffee machine has:
             $totalAmountOfWater ml of water
@@ -94,6 +159,10 @@ class CoffeeMachine(
 
 fun main() {
     val coffeeMachine = CoffeeMachine(400, 540, 120, 9, 550)
+    while (true) {
+        val userInput = readln()
+        if (userInput.lowercase() == "exit") break
+        else coffeeMachine.inputInterface(userInput)
+    }
 
-    coffeeMachine.coffeeMachineInterface()
 }
