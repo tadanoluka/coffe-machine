@@ -13,40 +13,49 @@ class CoffeeMachine(
     private var totalAmountOfBeans: Int,
     private var totalAmountOfCups: Int,
     private var totalAmountOfMoney: Int) {
+
     fun coffeeMachineInterface() {
-        displayCurrentState()
-        println()
-        println("Write action (buy, fill, take): ")
-        val stringForAction = readln()
-        when (stringForAction.lowercase()) {
-            "buy" -> buyOperation()
-            "fill" -> fillOperation()
-            "take" -> takeOperation()
-            else -> println("Invalid action")
+        while (true) {
+            println("Write action (buy, fill, take, remaining, exit): ")
+            val stringForAction = readln()
+            println()
+            when (stringForAction.lowercase()) {
+                "buy" -> buyOperation()
+                "fill" -> fillOperation()
+                "take" -> takeOperation()
+                "remaining" -> displayCurrentState()
+                "exit" -> break
+                else -> println("Invalid action")
+            }
+            println()
         }
     }
 
     private fun buyOperation() {
-        println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: ")
+        println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu: ")
         val chosenCoffee = when (readln()) {
             "1" -> CoffeeType.ESPRESSO
             "2" -> CoffeeType.LATTE
             "3" -> CoffeeType.CAPPUCCINO
+            "back" -> return
             else -> CoffeeType.NULL
         }
         if (chosenCoffee != CoffeeType.NULL) {
-            if (totalAmountOfWater >= chosenCoffee.requestedWater && totalAmountOfMilk >= chosenCoffee.requestedMilk &&
-                totalAmountOfBeans >= chosenCoffee.requestedBeans && totalAmountOfCups >= 1)
-            {
-                totalAmountOfWater -= chosenCoffee.requestedWater
-                totalAmountOfMilk -= chosenCoffee.requestedMilk
-                totalAmountOfBeans -= chosenCoffee.requestedBeans
-                totalAmountOfCups -= 1
-                totalAmountOfMoney += chosenCoffee.price
-
-                println()
-                displayCurrentState()
-            }
+            if (totalAmountOfWater >= chosenCoffee.requestedWater) {
+                if (totalAmountOfMilk >= chosenCoffee.requestedMilk) {
+                    if (totalAmountOfBeans >= chosenCoffee.requestedBeans) {
+                        if (totalAmountOfCups >= 1) {
+                            // Actual buying
+                            println("I have enough resources, making you a coffee!")
+                            totalAmountOfWater -= chosenCoffee.requestedWater
+                            totalAmountOfMilk -= chosenCoffee.requestedMilk
+                            totalAmountOfBeans -= chosenCoffee.requestedBeans
+                            totalAmountOfCups -= 1
+                            totalAmountOfMoney += chosenCoffee.price
+                        } else println("Sorry, not enough disposable cups")
+                    } else println("Sorry, not enough coffee beans!")
+                } else println("Sorry, not enough milk!")
+            } else println("Sorry, not enough water!")
         }
     }
 
@@ -59,22 +68,16 @@ class CoffeeMachine(
         val amountOfBeansToAdd = readln().toInt()
         println("Write how many disposable cups you want to add:")
         val amountOfCupsToAdd = readln().toInt()
-        println()
 
         totalAmountOfWater += amountOfWaterToAdd
         totalAmountOfMilk += amountOfMilkToAdd
         totalAmountOfBeans += amountOfBeansToAdd
         totalAmountOfCups += amountOfCupsToAdd
-
-        displayCurrentState()
     }
 
     private fun takeOperation() {
         println("I gave you \$$totalAmountOfMoney")
         totalAmountOfMoney = 0
-
-        println()
-        displayCurrentState()
     }
 
     private fun displayCurrentState() {
@@ -89,45 +92,8 @@ class CoffeeMachine(
     }
 }
 
-
 fun main() {
     val coffeeMachine = CoffeeMachine(400, 540, 120, 9, 550)
 
     coffeeMachine.coffeeMachineInterface()
-
-    /*
-    println("Write how many ml of water the coffee machine has:")
-    val totalAmountOfWater = readln().toInt()
-    println("Write how many ml of milk the coffee machine has:")
-    val totalAmountOfMilk = readln().toInt()
-    println("Write how many grams of coffee beans the coffee machine has:")
-    val totalAmountOfBeans = readln().toInt()
-    println("Write how many cups of coffee you will need:")
-    val numberOfRequestedCoffeeCups: Int = readln().toInt()
-
-    val maxOfCupsThatCanMake = listOf(
-        totalAmountOfWater / waterForCup,
-        totalAmountOfMilk / milkForCup,
-        totalAmountOfBeans / coffeeBeansForCup).minOrNull()!!
-
-    val totalRequestOfWater = waterForCup * valueOfCoffeeCups
-    val totalRequestOfMilk = milkForCup * valueOfCoffeeCups
-    val totalRequestOfBeans = coffeeBeansForCup * valueOfCoffeeCups
-
-    if (numberOfRequestedCoffeeCups < maxOfCupsThatCanMake) {
-        val difference = maxOfCupsThatCanMake - numberOfRequestedCoffeeCups
-        println("Yes, I can make that amount of coffee (and even $difference more than that)")
-    } else if (numberOfRequestedCoffeeCups == maxOfCupsThatCanMake) {
-        println("Yes, I can make that amount of coffee")
-    } else {
-        println("No, I can make only $maxOfCupsThatCanMake cups of coffee")
-    }
-
-    println("""
-        For $numberOfRequestedCoffeeCups cups of coffee you will need:
-        $totalAmountOfWater ml of water
-        $totalAmountOfMilk ml of milk
-        $totalAmountOfBeans g of coffee beans
-    """.trimIndent())
-    */
 }
